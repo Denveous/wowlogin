@@ -490,7 +490,7 @@
 								end
 
 								if (GetSavedAccountName() == "") then
-								  this.SetChecked(0);
+								  this:SetChecked(0);
 								end
 
 								if ( AccountLoginSavePassword:GetChecked() ) then
