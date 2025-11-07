@@ -385,10 +385,12 @@
 							<OnClick>
 								if ( this:GetChecked() ) then
 									PlaySound("igMainMenuOptionCheckBoxOff");
-									AccountLoginSavePassword:Show()
+									AccountLoginSavePassword:Show();
+									AccountLoginAutoLogin:Show();
 								else
 									PlaySound("igMainMenuOptionCheckBoxOn");
-									AccountLoginSavePassword:Hide()
+									AccountLoginSavePassword:Hide();
+									AccountLoginAutoLogin:Hide();
 								end
 							</OnClick>
 						</Scripts>
@@ -428,7 +430,11 @@
 								if ( this:GetChecked() and AccountLoginSaveAccountName:GetChecked() ) then
 									PlaySound("igMainMenuOptionCheckBoxOff");
 									GlueDialog_Show("REMEMBER_PASSWORD");
+									AccountLoginAutoLogin:Show()
 								elseif ( AccountLoginSaveAccountName:GetChecked() ) then
+								  AccountLoginAutoLogin:Hide();
+								  AccountLoginAutoLogin:SetChecked(0);
+								  autoLoginCounter = 0;
 									PlaySound("igMainMenuOptionCheckBoxOn");
 								else
 									this:SetChecked(0);
@@ -443,6 +449,76 @@
 						<Layers>
 							<Layer level="ARTWORK">
 								<FontString name="AccountLoginSavePasswordText" inherits="GlueFontNormalSmall" text="Remember Password">
+									<Anchors>
+										<Anchor point="LEFT">
+											<Offset>
+												<AbsDimension x="24" y="0"/>
+											</Offset>
+										</Anchor>
+									</Anchors>
+									<FontHeight>
+										<AbsValue val="10"/>
+									</FontHeight>
+									<Shadow>
+										<Offset>
+											<AbsDimension x="1" y="-1"/>
+										</Offset>
+										<Color r="0" g="0" b="0"/>
+									</Shadow>
+									<Color r="1.0" g="0.78" b="0"/>
+								</FontString>
+							</Layer>
+						</Layers>
+					</CheckButton>
+					<CheckButton name="AccountLoginAutoLogin" hidden="true">
+						<Size>
+							<AbsDimension x="20" y="20"/>
+						</Size>
+						<Anchors>
+							<Anchor point="RIGHT" relativeTo="AccountLoginSaveAccountName" relativePoint="LEFT">
+								<Offset>
+									<AbsDimension x="20" y="-36"/>
+								</Offset>
+							</Anchor>
+						</Anchors>
+						<Scripts>
+							<OnLoad>
+								if ( autoLogin == true ) then
+									this:SetChecked(1);
+								else
+									this:SetChecked(0);
+								end
+
+								if (GetSavedAccountName() == "") then
+								  this.SetChecked(0);
+								end
+
+								if ( AccountLoginSavePassword:GetChecked() ) then
+									this:Show();
+								else
+									this:Hide();
+									this:SetChecked(0);
+								end
+							</OnLoad>
+							<OnClick>
+								if ( this:GetChecked() ) then
+									PlaySound("igMainMenuOptionCheckBoxOn");
+									AccountLogin_SetupAutoLogin();
+								else
+							  	PlaySound("igMainMenuOptionCheckBoxOff");
+							  	autoLoginCounter = 0;
+									this:SetChecked(0);
+								end
+							</OnClick>
+						</Scripts>
+						<NormalTexture file="Interface\Buttons\UI-CheckBox-Up"/>
+						<PushedTexture file="Interface\Buttons\UI-CheckBox-Down"/>
+						<HighlightTexture file="Interface\Buttons\UI-CheckBox-Highlight" alphaMode="ADD"/>
+						<CheckedTexture file="Interface\Buttons\UI-CheckBox-Check"/>
+						<DisabledCheckedTexture file="Interface\Buttons\UI-CheckBox-Check-Disabled"/>
+						<Layers>
+							<Layer level="ARTWORK">
+								<FontString name="AccountLoginSavePasswordText" inherits="GlueFontNormalSmall" text="Auto Login">
 									<Anchors>
 										<Anchor point="LEFT">
 											<Offset>

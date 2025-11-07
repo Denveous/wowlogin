@@ -1,6 +1,8 @@
 FADE_IN_TIME = 2;
 DEFAULT_TOOLTIP_COLOR = {0.8, 0.8, 0.8, 0.09, 0.09, 0.09};
 MAX_PIN_LENGTH = 10;
+autoLogin = false;
+autoLoginCounter = 0
 
 GlueDialogTypes["REMEMBER_PASSWORD"] = {
 	text = "Do you really want to save your Password?",
@@ -12,6 +14,18 @@ GlueDialogTypes["REMEMBER_PASSWORD"] = {
 		AccountLoginSavePassword:SetChecked(0);
 	end,
 }
+
+function AccountLogin_SetupAutoLogin()
+	autoLoginCounter = 0
+	AccountLogin:SetScript("OnUpdate", function(self)
+		autoLoginCounter = autoLoginCounter + 1
+		if autoLoginCounter >= 120 then -- 120 frames 60*2 -- 2 seconds
+			AccountLogin_Login()
+			PlaySound("igMainMenuOptionCheckBoxOn")
+			this:SetScript("OnUpdate", nil)
+		end
+	end)
+end
 
 function AccountLogin_OnLoad()
 	this:SetSequence(0);
@@ -48,15 +62,25 @@ end
  end
 
 function AccountLogin_OnShow()
+	local t = string_explode(GetSavedAccountName(), "#&|&#")
+	local accountName = t[1] or "";
+	local password = t[2] or "";
+	autoLogin = t[3] == "1";
+
+	AccountLoginAutoLogin:SetChecked(autoLogin)
+
 	CurrentGlueMusic = "Sound\\Music\\GlueScreenMusic\\wow_main_theme.mp3";
-  local t = string_explode(GetSavedAccountName(), "#&|&#")
-  local accountName = t[1] or "";
-  local password = t[2] or "";
+
 	AccountLoginAccountEdit:SetText(accountName or "");
 	AccountLoginPasswordEdit:SetText(password or "");
 
+	if (autoLogin) then
+	  AccountLogin_SetupAutoLogin()
+	end
+
 	AcceptTOS();
-    AcceptEULA();
+        AcceptEULA();
+
 	local serverName = GetServerName();
 	if(serverName) then
 		AccountLoginRealmName:SetText(serverName);
@@ -66,8 +90,10 @@ function AccountLogin_OnShow()
 
 	if ( accountName == "" ) then
 		AccountLogin_FocusAccountName();
-	else
+	elseif ( password == "" ) then
 		AccountLogin_FocusPassword();
+	else
+
 	end
 end
 
@@ -83,6 +109,11 @@ function AccountLogin_OnChar()
 end
 
 function AccountLogin_OnKeyDown()
+	if ( autoLoginCounter and autoLoginCounter > 0 ) then -- any keypress cancel instead of just esc
+		PlaySound("igMainMenuOptionCheckBoxOff");
+		autoLoginCounter = 0;
+		AccountLogin:SetScript("OnUpdate", nil);
+	end
 	if ( arg1 == "ESCAPE" ) then
 		if ( ConnectionHelpFrame:IsVisible() ) then
 			ConnectionHelpFrame:Hide();
@@ -123,7 +154,7 @@ function AccountLogin_Login()
 	
 	if ( AccountLoginSaveAccountName:GetChecked() ) then
 		if ( AccountLoginSavePassword:GetChecked() ) then
-			SetSavedAccountName(AccountLoginAccountEdit:GetText().."#&|&#"..AccountLoginPasswordEdit:GetText());
+			SetSavedAccountName(AccountLoginAccountEdit:GetText().."#&|&#"..AccountLoginPasswordEdit:GetText().."#&|&#"..(AccountLoginAutoLogin:GetChecked() and "1" or "0"));
 		else
 			SetSavedAccountName(AccountLoginAccountEdit:GetText());
 		end
